@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<title>bounce</title>
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+			border: 0;
+		}
+
+		body{
+			background: rgba(200, 200, 200, 0.8);
+			overflow: hidden;
+		}
+
+		.bounce{
+			background: rgba(0, 255, 255, 0.4);
+			width: 720px;
+			height: 420px;
+			position: absolute;
+			top: 20px;
+			left: 50%;
+			margin-left: -375px;
+		}
+
+		.img{
+			background: url(2.jpg) center center no-repeat;
+			width: 700px;
+			height: 400px;
+			position: absolute;
+			left: 10px;
+			top: 10px;
+		}
+	</style>
+
+	<script type="text/javascript">
+		window.onload = function(){
+			function getByClass(oParent, sClass){
+				var aEle = oParent.getElementsByTagName('*');
+				var reg  = new RegExp('\\b' + sClass + '\\b','i');
+				var aRes = [];
+
+				for(var i = 0; i < aEle.length; i++){
+					if(reg.test(aEle[i].className)){
+						aRes[aRes.length] = aEle[i];
+					}
+				}
+				return aRes;
+			}
+
+			function setStyle(obj, json){
+				for(var i in json){
+					obj.style[i] = json[i];
+				}
+			}
+
+			function rnd(n, m)
+			{
+				return Math.random()*(m-n)+n;
+			}
+
+			function setStyle3(obj, name, value)
+			{
+				obj.style['Webkit'+name.charAt(0).toUpperCase()+name.substring(1)]=value;
+				obj.style['Moz'+name.charAt(0).toUpperCase()+name.substring(1)]=value;
+				obj.style['ms'+name.charAt(0).toUpperCase()+name.substring(1)]=value;
+				obj.style['O'+name.charAt(0).toUpperCase()+name.substring(1)]=value;
+				obj.style[name]=value;
+			}
+
+
+			function buffer(obj, cur, target, fnDo, fnEnd, fs){
+				fs = fs ? fs : 6;
+				var now = {};
+				var x = 0;
+				var v = 0;
+
+				obj.__last_timer = obj.__last_timer ? obj.__last_timer : 0;
+
+				var t = new Date().getTime();
+
+				if(t - obj.__last_timer > 20){
+					fnMove();
+					obj.__last_timer = t;
+				}
+
+				clearInterval(obj.timer);
+				obj.timer = setInterval(fnMove, 20);
+				function fnMove(){
+					v = Math.ceil((100 - x) / fs);
+
+					x += v;
+
+					for(var i in cur){
+						now[i] = (target[i] - cur[i]) * x / 100 + cur[i];
+					}
+
+					if(fnDo)fnDo.call(obj, now);
+
+					if(Math.abs(v) < 1 && Math.abs(100 - x) < 1){
+						clearInterval(obj.timer);
+						if(fnEnd)fnEnd.call(obj, target);
+					}
+				}
+			}
+
+			
+			var oImg = getByClass(document, 'img')[0];
+			var W = 700;
+			var H = 400;
+			var R = 4;
+			var C = 7;
+
+			for(var i = 0; i < C; i++){
+				for(var j = 0; j < R; j++){
+					var oNewDiv = document.createElement('div');
+					var aData = {'left': i / C * W, 'top' : j / R * H};
+					setStyle(oNewDiv, {
+						'width' : Math.ceil(W / C) + 'px',
+						'height' : Math.ceil(H / R) + 'px',
+						'position' : 'absolute',
+						'background' : 'url(1.jpg) ' + -aData.left + 'px ' + -aData.top + 'px no-repeat ',
+						'top' : aData.top + 'px',
+						'left' : aData.left + 'px'
+					});
+					oImg.appendChild(oNewDiv);
+
+					var l=((aData.left+W/(2*C))-W/2)*rnd(2,3)+W/2-W/(2*C);
+					var t=((aData.top+H/(2*R))-H/2)*rnd(2,3)+H/2-H/(2*R);
+
+					setTimeout((function (oNewDiv,l,t){
+					return function ()
+					{
+						buffer(
+							oNewDiv,
+							{left: oNewDiv.offsetLeft, top: oNewDiv.offsetTop, opacity: 100, x:0,y:90,z:0,scale:1, a:0},
+							{left: l, top: t, opacity: 0,x:rnd(-180, 180),y:rnd(-180, 180),z:rnd(-180, 180),scale:rnd(1.5, 3), a:1},
+							function (now){
+								this.style.left=now.left+'px';
+								this.style.top=now.top+'px';
+								this.style.opacity=now.opacity/100;
+								setStyle3(oNewDiv, 'transform', 'perspective(500px) rotateX('+now.x+'deg) rotateY('+now.y+'deg) rotateZ('+now.z+'deg) scale('+now.scale+')')
+							}, function (){
+								setTimeout(function (){
+									oImg.removeChild(oNewDiv);
+
+								}, 200);
+							}, 10
+						);
+					};
+				})(oNewDiv,l,t), rnd(0, 200));
+				}
+			}
+
+
+
+
+		}
+	</script>
+</head>
+
+<body>
+	<div class="bounce">
+		<div class="img"></div>
+	</div>
+</body>
+</html>
+
